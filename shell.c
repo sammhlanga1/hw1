@@ -25,11 +25,20 @@ int cmd_quit(tok_t arg[]) {
 int cmd_help(tok_t arg[]);
 
 int cmd_cd(tok_t arg[]){
+<<<<<<< HEAD
   if(arg[0] == NULL) return 0;
   else
     chdir(arg[0]);
 }
 
+=======
+   if(arg[0] == NULL) return 0;
+   else
+        chdir(arg[0]);
+}
+
+
+>>>>>>> origin/master
 /* Command Lookup table */
 typedef int cmd_fun_t (tok_t args[]); /* cmd functions take token array and return int */
 typedef struct fun_desc {
@@ -41,7 +50,12 @@ typedef struct fun_desc {
 fun_desc_t cmd_table[] = {
   {cmd_help, "?", "show this help menu"},
   {cmd_quit, "quit", "quit the command shell"},
+<<<<<<< HEAD
   {cmd_cd,  "cd","change directory"},
+=======
+  {cmd_cd, "cd", "change directory"},
+
+>>>>>>> origin/master
 };
 
 int cmd_help(tok_t arg[]) {
@@ -64,6 +78,7 @@ void init_shell()
 {
   /* Check if we are running interactively */
   shell_terminal = STDIN_FILENO;
+<<<<<<< HEAD
   
   /** Note that we cannot take control of the terminal if the shell
    is not interactive */
@@ -75,19 +90,45 @@ void init_shell()
     while(tcgetpgrp (shell_terminal) != (shell_pgid = getpgrp()))
       kill( - shell_pgid, SIGTTIN);
     
+=======
+
+  /** Note that we cannot take control of the terminal if the shell
+      is not interactive */
+  shell_is_interactive = isatty(shell_terminal);
+
+  if(shell_is_interactive){
+
+    /* force into foreground */
+    while(tcgetpgrp (shell_terminal) != (shell_pgid = getpgrp()))
+      kill( - shell_pgid, SIGTTIN);
+
+>>>>>>> origin/master
     shell_pgid = getpid();
     /* Put shell in its own process group */
     if(setpgid(shell_pgid, shell_pgid) < 0){
       perror("Couldn't put the shell in its own process group");
       exit(1);
     }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/master
     /* Take control of the terminal */
     tcsetpgrp(shell_terminal, shell_pgid);
     tcgetattr(shell_terminal, &shell_tmodes);
   }
   /** YOUR CODE HERE */
+<<<<<<< HEAD
   
+=======
+    
+   
+    
+
+
+
+>>>>>>> origin/master
 }
 
 /**
@@ -96,6 +137,12 @@ void init_shell()
 void add_process(process* p)
 {
   /** YOUR CODE HERE */
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> origin/master
 }
 
 /**
@@ -103,6 +150,7 @@ void add_process(process* p)
  */
 process* create_process(char* inputString)
 {
+<<<<<<< HEAD
   pid_t tcpid;
   pid_t pid = getpid(); // get pid of the current process ...
   // printf( "Parent pid: %d\n", pid ); // ... and print it out
@@ -123,6 +171,14 @@ char* concat(char *s1, char *s2)
   return result;
 }
 ///////////////////////
+=======
+  /** YOUR CODE HERE */
+  return NULL;
+}
+
+
+
+>>>>>>> origin/master
 int shell (int argc, char *argv[]) {
   char *s = malloc(INPUT_STRING_SIZE+1);			/* user input string */
   tok_t *t;			/* tokens parsed from input */
@@ -131,6 +187,7 @@ int shell (int argc, char *argv[]) {
   pid_t pid = getpid();		/* get current processes PID */
   pid_t ppid = getppid();	/* get parents PID */
   pid_t cpid, tcpid, cpgid;
+<<<<<<< HEAD
   
   init_shell();
   
@@ -178,3 +235,40 @@ int shell (int argc, char *argv[]) {
   }
   return 0;
 }
+=======
+
+  init_shell();
+  
+  printf("%s running as PID %d under %d\n",argv[0],pid,ppid);
+  //printf( "%s \n", get_current_dir_name());
+
+  lineNum=0;
+  fprintf(stdout, "%d %s: ", lineNum, get_current_dir_name());
+  while ((s = freadln(stdin))){
+    t = getToks(s); /* break the line into tokens */
+    fundex = lookup(t[0]); /* Is first token a shell literal */
+    if(fundex >= 0) cmd_table[fundex].fun(&t[1]);
+    else {
+      //      fprintf(stdout, "This shell only supports built-ins. Replace this to run programs as commands.\n");
+
+      pid = fork();
+      if(pid<0){
+	perror("Fork failed\n");
+      }
+      if(pid==0){
+	//cpid = getpid();
+	//printf("Child pid: %d \n",cpid);
+	execv(*t, t);
+	perror(*t);
+	
+	//sleep(5);
+      }
+      wait(NULL);
+	lineNum++;
+    }
+    fprintf(stdout, "%d %s: ", lineNum, get_current_dir_name());
+  }
+  return 0;
+}
+
+>>>>>>> origin/master
