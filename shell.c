@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdbool.h>
+#include <fcntl.h> 
 
 #define INPUT_STRING_SIZE 80
 
@@ -98,7 +99,16 @@ void init_shell()
  */
 void add_process(process* p)
 {
-  /** YOUR CODE HERE */
+  if(first_process == NULL)
+    first_process = p;
+  else{
+   process *temp = first_process;
+   while(temp->next != NULL)
+    	temp = temp->next;
+   temp->next = p;
+   p->prev = temp;
+   
+ }
 }
 
 /**
@@ -106,15 +116,19 @@ void add_process(process* p)
  */
 process* create_process(char* inputString)
 {
-  pid_t tcpid;
-  pid_t pid = getpid(); // get pid of the current process ...
-  // printf( "Parent pid: %d\n", pid ); // ... and print it out
-  pid_t cpid;
-  pid_t mypid;
-  
-  
+    //printf(inputString);
+    tok_t *t;
+     t = getToks(inputString);
+    process *new;
+    new = malloc(sizeof(process));
+    new->argv = t;
+    int i, n =0;
+    for(i =0; i <MAXTOKS && t[i]; i++)
+      n++;
+    new->argc = n; 
+    
   /** YOUR CODE HERE */
-  return NULL;
+  return new;
 }
 
 char* concat(char *s1, char *s2)
@@ -124,6 +138,53 @@ char* concat(char *s1, char *s2)
   strcpy(result, s1);
   strcat(result, s2);
   return result;
+}
+void p2(tok_t * t){
+    execv(*t,t);
+      perror(*t);
+      exit(0);
+}
+void p3(tok_t *t){
+  char *poi=getenv("PATH");
+      tok_t * pois = getToks(poi);
+      int i;
+      for(i = 0;i<MAXTOKS && pois[i];i++){
+        //char *( char *pois, *t);
+        char *fi=concat(pois[i],"/");
+        fi=concat(fi,t[0]);
+        if(access(fi,F_OK) != -1){
+          execve(fi,t, NULL);
+         printf("%s \n",fi);
+        }
+        //perror(*t);
+      }
+}
+void p4(tok_t *input,char * filename,char * c){
+
+int newfd;
+ 
+ if(c == ">"){
+  if ((newfd = open(filename, O_CREAT|O_WRONLY | O_APPEND, 0644)) < 0) {
+	perror(input);
+	exit(1);
+  }
+ dup2(newfd, 1);
+ close(newfd);
+ }
+
+ if(c == "<"){
+  if ((newfd = open(filename, O_RDONLY, 0644)) < 0) {
+	perror(input);
+	exit(1);
+  }
+
+ dup2(newfd,0);
+ close(newfd);
+
+ }
+  p3(input);
+  p2(input);
+
 }
 
 int shell (int argc, char *argv[]) {
@@ -143,40 +204,46 @@ int shell (int argc, char *argv[]) {
   char cwd[5000];
   fprintf(stdout, "%d: %s:", lineNum, getcwd(cwd,sizeof(cwd)));
   while ((s = freadln(stdin))){
-    t = getToks(s); /* break the line into tokens */
+   char * send;
+   send = concat(s,"");
+   t = getToks(s); /* break the line into tokens */
   fundex = lookup(t[0]); /* Is first token a shell literal */
   if(fundex >= 0) cmd_table[fundex].fun(&t[1]);
   else {
     pid = fork(); 
     
-    if( pid == 0 ){ // child process
-      
-      
-      char *poi=getenv("PATH");
-      tok_t * pois = getToks(poi);
-      int i;
-      for(i = 0;i<MAXTOKS && pois[i];i++){
-        //char *( char *pois, *t);
-        char *fi=concat(pois[i],"/");
-        fi=concat(fi,t[0]);
-        if(access(fi,F_OK) != -1){
-          execve(fi,t, NULL);
-        }
-        //perror(*t);
-      }
-      execv(*t,t);
-      perror(*t);
-      exit(0);
-      
-    }else if(pid<0){
+    if( pid == 0 ){
+    process *new = create_process(send);
+    add_process(new);
+    launch_process(new);
+         /*int i;
+         for(i=0;i<MAXTOKS && t[i];i++){
+		 if (strcmp( t[i], ">") == 0){
+	 	  t[i]=NULL;
+		  //printf("hello");
+		  part4(t,t[i+1],">");	
+                  }
+		if (strcmp( t[i], "<") == 0){
+	 	  t[i]=NULL;
+		  //printf("hello");
+		  part4(t,t[i+1],"<");	
+                  }
+		}
+      part3(t);
+      part2(t);*/
+
+    }else if(pid < 0){
       perror( "Fork failed" );
       exit( EXIT_FAILURE );    
     }
-  }
+
+  } 
+
   lineNum++;
   wait(NULL);
   
   fprintf(stdout, "%d: %s :", lineNum, getcwd(cwd,sizeof(cwd)));
   }
+
   return 0;
 }
