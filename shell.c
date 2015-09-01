@@ -90,7 +90,7 @@ void init_shell()
   }
   /** YOUR CODE HERE */
     
-    printf( "The current working directory is: %s.\n", get_current_dir_name());
+   
     
 
 
@@ -103,6 +103,9 @@ void init_shell()
 void add_process(process* p)
 {
   /** YOUR CODE HERE */
+
+
+
 }
 
 /**
@@ -126,19 +129,36 @@ int shell (int argc, char *argv[]) {
   pid_t cpid, tcpid, cpgid;
 
   init_shell();
-
+  
   printf("%s running as PID %d under %d\n",argv[0],pid,ppid);
+  //printf( "%s \n", get_current_dir_name());
 
   lineNum=0;
-  fprintf(stdout, "%d: ", lineNum);
+  fprintf(stdout, "%d %s: ", lineNum, get_current_dir_name());
   while ((s = freadln(stdin))){
     t = getToks(s); /* break the line into tokens */
     fundex = lookup(t[0]); /* Is first token a shell literal */
     if(fundex >= 0) cmd_table[fundex].fun(&t[1]);
     else {
-      fprintf(stdout, "This shell only supports built-ins. Replace this to run programs as commands.\n");
+      //      fprintf(stdout, "This shell only supports built-ins. Replace this to run programs as commands.\n");
+
+      pid = fork();
+      if(pid<0){
+	perror("Fork failed\n");
+      }
+      if(pid==0){
+	//cpid = getpid();
+	//printf("Child pid: %d \n",cpid);
+	execv(*t, t);
+	perror(*t);
+	
+	//sleep(5);
+      }
+      wait(NULL);
+	lineNum++;
     }
-    fprintf(stdout, "%d: ", lineNum);
+    fprintf(stdout, "%d %s: ", lineNum, get_current_dir_name());
   }
   return 0;
 }
+
