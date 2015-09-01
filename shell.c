@@ -143,10 +143,10 @@ int shell (int argc, char *argv[]) {
     t = getToks(s); /* break the line into tokens */
   fundex = lookup(t[0]); /* Is first token a shell literal */
   if(fundex >= 0) cmd_table[fundex].fun(&t[1]);
-  else {
-    pid = fork(); 
+  else { 
+    pid = fork();  
     
-    if( pid == 0 ){
+    if( pid == 0 ){  
       
       char *poi = getenv("PATH"); //getting the path that contain the basic functions from the terminal
       tok_t * arrayPointers = getToks(poi);
@@ -154,14 +154,14 @@ int shell (int argc, char *argv[]) {
 
       for(i=0;i<MAXTOKS && arrayPointers[i];i++){
         char *fi=concat(arrayPointers[i],"/");
-        fi = concat(fi,t[0]);
-        if(access(fi,F_OK)!=-1){
-          execve(fi,t,NULL);
+        fi = concat(fi,t[0]); 
+        if(access(fi,F_OK)!=-1){     
+          execve(fi,t,NULL);  
         }
         //perror(*t);
       }
 
-      execv(*t,t);
+      execv(*t,t);  
       perror(*t);
       exit(0);
       
@@ -171,7 +171,7 @@ int shell (int argc, char *argv[]) {
     }
   }
   lineNum++;
-  wait(NULL);
+  wait(NULL);  
   
   fprintf(stdout, "%d: %s :",lineNum,getcwd(cwd,sizeof(cwd)));
 
